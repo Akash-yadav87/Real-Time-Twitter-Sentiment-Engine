@@ -7,7 +7,7 @@
 
 > **Executive Overview:** A scalable Natural Language Processing (NLP) web command center that autonomously collects social media posts, runs regex preprocessors, and executes real-time semantic evaluations to compute an automated **Market Perception Strategic Verdict**.
 
-🌐 **[✦ CLICK HERE TO EXPLORE THE LIVE INTERACTIVE COMMAND CENTER!](your-streamlit-cloud-link-goes-here)**
+🌐 **Live demo:** add your Streamlit Community Cloud URL after deployment.
 
 ---
 
@@ -33,3 +33,19 @@ Real-Time-Twitter-Sentiment-Engine/
 │   └── chart_visualizer.py     # Independent Plotly Express & Graph Object Engine
 │
 └── app.py                      # Master Cyberspace Streamlit SaaS UI
+```
+
+## Import Reviewed Tweet Exports
+
+The dashboard can run the same sentiment pipeline against a local TweetClaw
+export instead of only generated demo posts.
+
+1. Export reviewed public X/Twitter records from TweetClaw as JSON, JSONL,
+   NDJSON, or CSV.
+2. Start the Streamlit app.
+3. Choose **TweetClaw Export** in the sidebar.
+4. Upload the export and run the pipeline.
+
+The adapter reads common text, timestamp, like, and retweet fields. It does not
+need API keys, account cookies, direct messages, or posting permissions. The app
+keeps the final VADER and TextBlob scoring step inside this repository.
