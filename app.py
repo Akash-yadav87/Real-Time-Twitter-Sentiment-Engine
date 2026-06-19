@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import nltk
 from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from tweetclaw_import import build_dashboard_rows, load_tweetclaw_records
 
 # Inject Absolute Workspace Path Booster to guarantee Cloud Module Resolution
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -141,19 +142,46 @@ with st.sidebar:
     st.header("⚙️ Live Mining Engine")
     target_keyword = st.text_input("Enter Topic / Target Brand:", value="Artificial Intelligence")
     tweets_to_mine = st.slider("Select Data Deep-Dive Count:", min_value=20, max_value=200, value=110, step=10)
+    data_source = st.radio(
+        "Select Data Source:",
+        ["Synthetic Simulation", "TweetClaw Export"],
+        index=0,
+    )
+    uploaded_tweetclaw_file = None
+    if data_source == "TweetClaw Export":
+        uploaded_tweetclaw_file = st.file_uploader(
+            "Upload TweetClaw JSON, JSONL, NDJSON, or CSV",
+            type=["json", "jsonl", "ndjson", "csv"],
+        )
     
     st.markdown("---")
     run_mining = st.button("🚀 Execute Modular Mining", type="primary", use_container_width=True)
     st.caption("⚡ System Status: Enterprise Cloud Engine Active ✅")
 
 if run_mining:
-    with st.spinner(f"Initiating multi-threaded data scraping and NLP pipeline for '{target_keyword}'..."):
-        result_df = collect_synthetic_telemetry(keyword=target_keyword, total_count=tweets_to_mine)
+    if data_source == "TweetClaw Export" and uploaded_tweetclaw_file is None:
+        st.warning("Upload a TweetClaw export before running the pipeline.")
+        st.stop()
+
+    with st.spinner(f"Initiating modular NLP pipeline for '{target_keyword}'..."):
+        if data_source == "TweetClaw Export" and uploaded_tweetclaw_file is not None:
+            tweetclaw_records = load_tweetclaw_records(
+                uploaded_tweetclaw_file.getvalue(),
+                uploaded_tweetclaw_file.name,
+            )
+            result_df = pd.DataFrame(build_dashboard_rows(tweetclaw_records, evaluate_semantic_polarity))
+        else:
+            result_df = collect_synthetic_telemetry(keyword=target_keyword, total_count=tweets_to_mine)
+
+    if result_df.empty:
+        st.warning("No tweet text was found in the selected data source.")
+        st.stop()
         
     st.success(f"Successfully executed AI pipeline across {len(result_df)} structured entities!")
     
     net_velocity = result_df["VADER Score"].mean()
     gross_interactions = result_df["Likes"].sum() + result_df["Retweets"].sum()
+    entities_mined = len(result_df)
     
     if net_velocity >= 0.15:
         exec_status = "MARKET PERCEPTION: THRIVING 🟩"
@@ -188,7 +216,7 @@ if run_mining:
 <div style="font-size: 18px; font-weight: 700; color: #f3f4f6; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.15);">Strategic Overview: <span style="color: {text_accent};">{exec_sub}</span></div>
 <div style="font-size: 13px; color: #d1d5db; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">⚙️ Algorithmic Telemetry Rationale & Real-World Amplification:</div>
 <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px;">
-<div style="background: {pill_bg}; color: #ffffff; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 6px rgba(0,0,0,0.2);">📊 Entities Mined: {tweets_to_mine} Posts</div>
+<div style="background: {pill_bg}; color: #ffffff; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 6px rgba(0,0,0,0.2);">📊 Entities Mined: {entities_mined} Posts</div>
 <div style="background: {pill_bg}; color: #ffffff; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 6px rgba(0,0,0,0.2);">🧠 Net VADER Coefficient: {net_velocity:+.2f}</div>
 <div style="background: {pill_bg}; color: #ffffff; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 6px rgba(0,0,0,0.2);">🔥 Amplification Reach: {gross_interactions:,} Engagements</div>
 </div>
